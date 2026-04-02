@@ -1,154 +1,143 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>720 ENT Hub</title>
   <style>
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#1f1f1f,#000);color:#fff;min-height:100vh}
-    .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-    .card{width:min(720px,100%);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:32px;backdrop-filter:blur(8px);box-shadow:0 20px 80px rgba(0,0,0,.45)}
-    .badge{display:inline-block;padding:8px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;font-weight:700;letter-spacing:.12em;font-size:12px;margin-bottom:16px}
-    h1{margin:0 0 12px;font-size:56px;line-height:1}
-    p{line-height:1.6;color:#e6e6e6}
-    .btn{display:inline-block;margin:8px 10px 8px 0;padding:14px 18px;border-radius:12px;border:0;background:#fff;color:#000;font-weight:700;text-decoration:none;cursor:pointer}
-    .btn.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35)}
-    .note{margin-top:14px;font-size:14px;opacity:.85}
-    details{margin-top:18px}
-    summary{cursor:pointer;font-weight:700}
-    ol{color:#ddd;line-height:1.7}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#1f1f1f,#000);color:#fff;min-height:100vh;padding:20px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1200px;margin:0 auto}
+    .tool{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:24px;text-align:center;transition:all .3s}
+    .tool:hover{background:rgba(255,255,255,.12);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+    .tool h3{margin:0 0 12px;font-size:20px}
+    .tool p{color:#ccc;margin:0 0 20px;font-size:14px}
+    .tool button{width:100%;padding:14px;border:0;border-radius:10px;background:#fff;color:#000;font-weight:700;cursor:pointer;font-size:16px}
+    .badge{position:fixed;top:20px;right:20px;padding:8px 16px;background:rgba(0,0,0,.8);border:1px solid #fff;border-radius:20px;font-size:12px;font-weight:700}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="card">
-      <div class="badge">720 ENT</div>
-      <h1>Hub</h1>
-      <p>Click launch to open the overlay. Ctrl + Q closes or minimizes the app inside the bookmarklet.</p>
-      <a class="btn" id="launch" href="#">Launch Hub</a>
-      <button class="btn secondary" id="copy">Copy Bookmarklet</button>
-      <p class="note" id="status">Ready.</p>
-      <details>
-        <summary>How to use</summary>
-        <ol>
-          <li>Open this GitHub Pages site.</li>
-          <li>Copy the bookmarklet.</li>
-          <li>Create a new browser bookmark and paste it into the URL field.</li>
-          <li>Click the bookmark on any page to launch the hub.</li>
-        </ol>
-      </details>
+  <div class="badge">720 ENT</div>
+  
+  <div class="grid">
+    <div class="tool">
+      <h3>Quick Tools</h3>
+      <p>One-click utilities</p>
+      <button onclick="launchColorPicker()">Color Picker</button>
     </div>
-  </main>
+    
+    <div class="tool">
+      <h3>Inspect DOM</h3>
+      <p>Highlight all elements</p>
+      <button onclick="highlightAll()">Highlight Elements</button>
+    </div>
+    
+    <div class="tool">
+      <h3>CSS Grid Viewer</h3>
+      <p>Visualize CSS Grid</p>
+      <button onclick="showGridOverlay()">Show Grid</button>
+    </div>
+    
+    <div class="tool">
+      <h3>Network Monitor</h3>
+      <p>Live network requests</p>
+      <button onclick="toggleNetworkMonitor()">Network Monitor</button>
+    </div>
+    
+    <div class="tool">
+      <h3>JSON Formatter</h3>
+      <p>Format JSON in console</p>
+      <button onclick="formatConsoleJSON()">Format JSON</button>
+    </div>
+    
+    <div class="tool">
+      <h3>Image Downloader</h3>
+      <p>Grab all images</p>
+      <button onclick="downloadAllImages()">Download Images</button>
+    </div>
+  </div>
 
   <script>
-    const bookmarklet = `javascript:(function(){
-  const existing = document.getElementById('ent720-overlay');
-  if(existing){ existing.remove(); return; }
-
-  const overlay = document.createElement('div');
-  overlay.id = 'ent720-overlay';
-  overlay.innerHTML = '720 ENT.';
-  Object.assign(overlay.style, {
-    position: 'fixed', top: '-200px', left: '50%', transform: 'translateX(-50%)',
-    fontSize: '80px', fontWeight: '900', color: 'white',
-    textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6)',
-    zIndex: '999999', pointerEvents: 'auto', cursor: 'pointer',
-    transition: 'top 0.8s cubic-bezier(.25,1.5,.5,1), transform 0.2s, text-shadow 0.2s'
-  });
-  document.body.appendChild(overlay);
-  setTimeout(()=>{ overlay.style.top = '40%'; },50);
-
-  let flickerCount = 0;
-  const flicker = setInterval(()=>{
-    overlay.style.opacity = (Math.random() > 0.5 ? '1' : '0.6');
-    flickerCount++;
-    if(flickerCount > 15){ clearInterval(flicker); overlay.style.opacity = '1'; }
-  },80);
-
-  overlay.addEventListener('mouseenter', ()=>{
-    overlay.style.transform = 'translateX(-50%) scale(1.1)';
-    overlay.style.textShadow = '0 0 20px rgba(255,255,255,1), 0 0 40px rgba(255,255,255,0.9)';
-  });
-  overlay.addEventListener('mouseleave', ()=>{
-    overlay.style.transform = 'translateX(-50%) scale(1)';
-    overlay.style.textShadow = '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6)';
-  });
-
-  const closeAll = () => {
-    document.getElementById('ent720-app')?.remove();
-    document.getElementById('ent720-overlay')?.remove();
-    document.removeEventListener('keydown', onKeyDown, true);
-  };
-
-  const minimizeApp = () => {
-    const app = document.getElementById('ent720-app');
-    if(!app) return;
-    if(app.dataset.minimized === '1'){
-      app.dataset.minimized = '0';
-      app.style.height = '100%';
-      app.querySelector('iframe').style.display = 'block';
-      app.querySelector('#ent720-header').style.display = 'block';
-      app.querySelector('#ent720-close').style.display = 'block';
-      app.querySelector('#ent720-minimize').innerHTML = '–';
-    } else {
-      app.dataset.minimized = '1';
-      app.style.height = 'auto';
-      app.querySelector('iframe').style.display = 'none';
-      app.querySelector('#ent720-header').style.display = 'none';
-      app.querySelector('#ent720-close').style.display = 'none';
-      app.querySelector('#ent720-minimize').innerHTML = '□';
-    }
-  };
-
-  function onKeyDown(e){
-    if(e.ctrlKey && (e.key === 'q' || e.key === 'Q')){
-      e.preventDefault();
-      const app = document.getElementById('ent720-app');
-      if(app) closeAll();
-      else document.getElementById('ent720-overlay')?.remove();
-    }
-  }
-  document.addEventListener('keydown', onKeyDown, true);
-
-  overlay.addEventListener('click', ()=>{
-    if(document.getElementById('ent720-app')) return;
-    const app = document.createElement('div');
-    app.id = 'ent720-app';
-    app.dataset.minimized = '0';
-    Object.assign(app.style, { position:'fixed', top:'0', left:'0', width:'100%', height:'100%', background:'rgba(0,0,0,0.95)', zIndex:'999998', display:'flex', flexDirection:'column' });
-    const header = document.createElement('div');
-    header.id = 'ent720-header';
-    header.innerHTML = '720 ENT HUB';
-    Object.assign(header.style, { color:'white', fontSize:'24px', padding:'15px', fontWeight:'bold', borderBottom:'1px solid rgba(255,255,255,0.2)' });
-    const close = document.createElement('div');
-    close.id = 'ent720-close'; close.innerHTML = '✕';
-    Object.assign(close.style, { position:'absolute', top:'10px', right:'20px', color:'white', fontSize:'30px', cursor:'pointer' });
-    close.onclick = closeAll;
-    const minimize = document.createElement('div');
-    minimize.id = 'ent720-minimize'; minimize.innerHTML = '–';
-    Object.assign(minimize.style, { position:'absolute', top:'10px', right:'60px', color:'white', fontSize:'30px', cursor:'pointer' });
-    minimize.onclick = minimizeApp;
-    const frame = document.createElement('iframe');
-    frame.src = 'https://example.com';
-    Object.assign(frame.style, { flex:'1', border:'none', width:'100%' });
-    app.appendChild(header); app.appendChild(minimize); app.appendChild(close); app.appendChild(frame);
-    document.body.appendChild(app);
-  });
-})();`;
-
-    const launch = document.getElementById('launch');
-    const copy = document.getElementById('copy');
-    const status = document.getElementById('status');
-    launch.href = bookmarklet;
-    copy.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(bookmarklet);
-        status.textContent = 'Bookmarklet copied.';
-      } catch (e) {
-        status.textContent = 'Copy failed. Manually copy from page source.';
+    function launchColorPicker() {
+      const picker = document.createElement('div');
+      picker.id = 'color-picker';
+      picker.innerHTML = `
+        <div style="position:fixed;top:20px;left:20px;background:rgba(0,0,0,0.95);padding:20px;border-radius:12px;z-index:999999;border:1px solid #fff">
+          <div style="color:white;font-weight:bold;margin-bottom:10px">Color Picker</div>
+          <input type="color" id="color-input" style="width:60px;height:40px;border:none;border-radius:6px;cursor:pointer">
+          <div id="color-info" style="margin-top:10px;color:#ccc;font-family:monospace;font-size:12px"></div>
+          <button onclick="document.getElementById('color-picker').remove()" style="margin-top:10px;padding:8px 16px;background:#fff;color:#000;border:none;border-radius:6px;cursor:pointer">Close</button>
+        </div>
+      `;
+      document.body.appendChild(picker);
+      
+      const input = document.getElementById('color-input');
+      const info = document.getElementById('color-info');
+      
+      input.addEventListener('input', (e) => {
+        info.textContent = `RGB: ${hexToRgb(e.target.value)}`;
+        document.body.style.background = e.target.value;
+      });
+      
+      function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1],16)}, ${parseInt(result[2],16)}, ${parseInt(result[3],16)}` : null;
       }
-    });
+    }
+    
+    function highlightAll() {
+      Array.from(document.querySelectorAll('*')).forEach((el, i) => {
+        setTimeout(() => {
+          el.style.outline = `2px solid hsl(${Math.random()*360}, 70%, 50%)`;
+          el.style.outlineOffset = '2px';
+        }, i * 10);
+      });
+    }
+    
+    function showGridOverlay() {
+      const grid = document.createElement('div');
+      grid.id = 'css-grid-viewer';
+      grid.style.cssText = `
+        position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;
+        background-image:linear-gradient(rgba(0,255,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,0,0.1) 1px, transparent 1px);
+        background-size:20px 20px;z-index:99999;
+      `;
+      document.body.appendChild(grid);
+      setTimeout(() => grid.remove(), 5000);
+    }
+    
+    function toggleNetworkMonitor() {
+      console.table(performance.getEntriesByType('resource'));
+      console.log('%cNetwork requests logged above', 'font-size:20px;color:lime');
+    }
+    
+    function formatConsoleJSON() {
+      const json = prompt('Paste JSON here:');
+      if (json) {
+        try {
+          const formatted = JSON.stringify(JSON.parse(json), null, 2);
+          console.clear();
+          console.log('%cFormatted JSON:', 'font-size:18px;color:lime');
+          console.log(formatted);
+        } catch(e) {
+          alert('Invalid JSON');
+        }
+      }
+    }
+    
+    function downloadAllImages() {
+      const images = Array.from(document.images);
+      images.forEach((img, i) => {
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = img.src;
+          a.download = `image-${i}.jpg`;
+          a.click();
+        }, i * 100);
+      });
+      alert(`${images.length} images queued for download`);
+    }
   </script>
 </body>
 </html>
